@@ -26,6 +26,18 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
+
+    const db = client.db("ideavault");
+    const ideaCollection = db.collection("ideas");
+
+    app.post("/ideas", async (req, res) => {
+      const idea = req.body;
+      // console.log(idea);
+      const result = await ideaCollection.insertOne(idea);
+
+      res.json(result);
+    });
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
@@ -33,7 +45,7 @@ async function run() {
     );
   } finally {
     // Ensures that the client will close when you finish/error
-    await client.close();
+    // await client.close(); 
   }
 }
 run().catch(console.dir);
