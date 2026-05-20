@@ -46,7 +46,7 @@ async function run() {
       res.json(result);
     });
 
-    // get the idea by id
+    // get the idea by creator
     app.get(`/ideas/:userId`, async (req, res) => {
       const { userId } = req.params;
 
@@ -55,6 +55,15 @@ async function run() {
           createdBy: userId,
         })
         .toArray();
+
+      res.json(result);
+    });
+
+    // get details idea
+    app.get(`/ideas/details/:id`, async (req, res) => {
+      const { id } = req.params;
+
+      const result = await ideaCollection.findOne({ _id: new ObjectId(id) });
 
       res.json(result);
     });
