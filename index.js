@@ -29,6 +29,7 @@ async function run() {
 
     const db = client.db("ideavault");
     const ideaCollection = db.collection("ideas");
+    const commentCollection = db.collection("comments");
 
     // post the idea data
     app.post("/ideas", async (req, res) => {
@@ -90,6 +91,14 @@ async function run() {
       const result = await ideaCollection.deleteOne({
         _id: new ObjectId(ideaId),
       });
+
+      res.json(result);
+    });
+
+    // store comment
+    app.post("/comments", async (req, res) => {
+      const comment = req.body;
+      const result = await commentCollection.insertOne(comment);
 
       res.json(result);
     });
