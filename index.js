@@ -2,7 +2,7 @@ const dns = require("node:dns");
 dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
 const express = require("express");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const app = express();
 const dotenv = require("dotenv");
 const cors = require("cors");
@@ -55,6 +55,17 @@ async function run() {
           createdBy: userId,
         })
         .toArray();
+
+      res.json(result);
+    });
+
+    // delete idea
+    app.delete(`/ideas/:ideaId`, async (req, res) => {
+      const { ideaId } = req.params;
+
+      const result = await ideaCollection.deleteOne({
+        _id: new ObjectId(ideaId),
+      });
 
       res.json(result);
     });
