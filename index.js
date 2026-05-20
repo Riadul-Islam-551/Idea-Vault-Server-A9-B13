@@ -59,6 +59,21 @@ async function run() {
       res.json(result);
     });
 
+    //update idea
+    app.patch(`/ideas/:ideaId`, async (req, res) => {
+      const { ideaId } = req.params;
+      const updatedData = req.body;
+
+      const result = await ideaCollection.updateOne(
+        { _id: new ObjectId(ideaId) },
+        {
+          $set: updatedData,
+        },
+      );
+
+      res.json(result);
+    });
+
     // delete idea
     app.delete(`/ideas/:ideaId`, async (req, res) => {
       const { ideaId } = req.params;
