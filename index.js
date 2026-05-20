@@ -30,10 +30,31 @@ async function run() {
     const db = client.db("ideavault");
     const ideaCollection = db.collection("ideas");
 
+    // post the idea data
     app.post("/ideas", async (req, res) => {
       const idea = req.body;
       // console.log(idea);
       const result = await ideaCollection.insertOne(idea);
+
+      res.json(result);
+    });
+
+    // get the idea data
+    app.get("/ideas", async (req, res) => {
+      const result = await ideaCollection.find().toArray();
+
+      res.json(result);
+    });
+
+    // get the idea by id
+    app.get(`/ideas/:userId`, async (req, res) => {
+      const { userId } = req.params;
+
+      const result = await ideaCollection
+        .find({
+          createdBy: userId,
+        })
+        .toArray();
 
       res.json(result);
     });
@@ -45,7 +66,7 @@ async function run() {
     );
   } finally {
     // Ensures that the client will close when you finish/error
-    // await client.close(); 
+    // await client.close();
   }
 }
 run().catch(console.dir);
