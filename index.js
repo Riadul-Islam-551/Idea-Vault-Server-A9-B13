@@ -103,6 +103,30 @@ async function run() {
       res.json(result);
     });
 
+    // fetch comments by ideaID
+    app.get(`/comments/:ideaId`, async (req, res) => {
+      const { ideaId } = req.params;
+      const result = await commentCollection.find({ idea: ideaId }).toArray();
+
+      res.json(result);
+    });
+
+    // update the comment
+    app.patch(`/comments/:id`, async (req, res) => {
+      const { id } = req.params;
+      // console.log(id);
+      const updatedData = req.body;
+
+      const result = await commentCollection.updateOne(
+        { _id: new ObjectId(id) },
+        {
+          $set: updatedData,
+        },
+      );
+
+      res.json(result);
+    });
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
