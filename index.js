@@ -111,6 +111,14 @@ async function run() {
       res.json(result);
     });
 
+    //get personal comment
+    app.get("/comments/myInteraction/:id", async (req, res) => {
+      const { id } = req.params;
+      const result = await commentCollection.find({ userId: id }).toArray();
+
+      res.json(result);
+    });
+
     // update the comment
     app.patch(`/comments/:id`, async (req, res) => {
       const { id } = req.params;
