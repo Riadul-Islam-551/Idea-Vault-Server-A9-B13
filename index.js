@@ -41,8 +41,19 @@ async function run() {
     });
 
     // get the idea data
+    // app.get("/ideas", async (req, res) => {
+    //   const result = await ideaCollection.find().toArray();
+
+    //   res.json(result);
+    // });
+
     app.get("/ideas", async (req, res) => {
-      const result = await ideaCollection.find().toArray();
+      const limit = parseInt(req.query.limit);
+
+      const result = await ideaCollection
+        .find()
+        .limit(limit || 0)
+        .toArray();
 
       res.json(result);
     });
