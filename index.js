@@ -6,6 +6,7 @@ const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const app = express();
 const dotenv = require("dotenv");
 const cors = require("cors");
+const { createRemoteJWKSet, jwtVerify } = require("jose-cjs");
 dotenv.config();
 
 const port = process.env.PORT;
@@ -22,6 +23,36 @@ const client = new MongoClient(uri, {
   },
 });
 
+// verify token
+// install npm package for jose-cjs
+
+const JWKS = createRemoteJWKSet(new URL("http://localhost:3000/api/auth/jwks"));
+
+const verifyToken = async (req, res, next) => {
+  const authHeader = req?.headers.authorization;
+  if (!authHeader) {
+    return res.status(401).json({
+      message: "Unauthorized",
+    });
+  }
+  const token = authHeader.split(" ")[1];
+  if (!token) {
+    return res.status(401).json({
+      message: "Unauthorized ",
+    });
+  }
+  // console.log(token);
+
+  try {
+    const { payload } = await jwtVerify(token, JWKS);
+    console.log(payload);
+    next();
+  } catch (error) {
+    return res.status(403).json({ message: "Forbidden" });
+  }
+  // next();
+};
+
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
@@ -32,20 +63,13 @@ async function run() {
     const commentCollection = db.collection("comments");
 
     // post the idea data
-    app.post("/ideas", async (req, res) => {
+    app.post("/ideas", verifyToken, async (req, res) => {
       const idea = req.body;
       // console.log(idea);
       const result = await ideaCollection.insertOne(idea);
 
       res.json(result);
     });
-
-    // get the idea data
-    // app.get("/ideas", async (req, res) => {
-    //   const result = await ideaCollection.find().toArray();
-
-    //   res.json(result);
-    // });
 
     app.get("/ideas", async (req, res) => {
       const limit = parseInt(req.query.limit);
@@ -59,7 +83,7 @@ async function run() {
     });
 
     // get the idea by creator
-    app.get(`/ideas/:userId`, async (req, res) => {
+    app.get(`/ideas/:userId`, verifyToken, async (req, res) => {
       const { userId } = req.params;
 
       const result = await ideaCollection
@@ -71,8 +95,9 @@ async function run() {
       res.json(result);
     });
 
+    // middleware
     // get details idea
-    app.get(`/ideas/details/:id`, async (req, res) => {
+    app.get(`/ideas/details/:id`, verifyToken, async (req, res) => {
       const { id } = req.params;
 
       const result = await ideaCollection.findOne({ _id: new ObjectId(id) });
@@ -81,7 +106,7 @@ async function run() {
     });
 
     //update idea
-    app.patch(`/ideas/:ideaId`, async (req, res) => {
+    app.patch(`/ideas/:ideaId`, verifyToken, async (req, res) => {
       const { ideaId } = req.params;
       const updatedData = req.body;
 
@@ -96,7 +121,7 @@ async function run() {
     });
 
     // delete idea
-    app.delete(`/ideas/:ideaId`, async (req, res) => {
+    app.delete(`/ideas/:ideaId`, verifyToken, async (req, res) => {
       const { ideaId } = req.params;
 
       const result = await ideaCollection.deleteOne({
@@ -107,7 +132,7 @@ async function run() {
     });
 
     // store comment
-    app.post("/comments", async (req, res) => {
+    app.post("/comments", verifyToken, async (req, res) => {
       const comment = req.body;
       const result = await commentCollection.insertOne(comment);
 
@@ -115,7 +140,7 @@ async function run() {
     });
 
     // fetch comments by ideaID
-    app.get(`/comments/:ideaId`, async (req, res) => {
+    app.get(`/comments/:ideaId`, verifyToken, async (req, res) => {
       const { ideaId } = req.params;
       const result = await commentCollection.find({ idea: ideaId }).toArray();
 
@@ -123,7 +148,7 @@ async function run() {
     });
 
     //get personal comment
-    app.get("/comments/myInteraction/:id", async (req, res) => {
+    app.get("/comments/myInteraction/:id", verifyToken, async (req, res) => {
       const { id } = req.params;
       const result = await commentCollection.find({ userId: id }).toArray();
 
@@ -131,7 +156,7 @@ async function run() {
     });
 
     // update the comment
-    app.patch(`/comments/:id`, async (req, res) => {
+    app.patch(`/comments/:id`, verifyToken, async (req, res) => {
       const { id } = req.params;
       // console.log(id);
       const updatedData = req.body;
@@ -147,7 +172,7 @@ async function run() {
     });
 
     // delete the comment
-    app.delete("/comments/:id", async (req, res) => {
+    app.delete("/comments/:id", verifyToken, async (req, res) => {
       const { id } = req.params;
 
       const result = await commentCollection.deleteOne({
